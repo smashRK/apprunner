@@ -1,0 +1,16 @@
+version: 1.0
+runtime: python3
+build:
+  commands:
+    build:
+      - pip install -r backend/requirements.txt
+      - cd frontend && npm install && npm run build
+run:
+  runtime-version: 3.12.0
+  command: cd backend && uvicorn main:app --host 0.0.0.0 --port 8080
+  network:
+    port: 8080
+    env: PORT
+  env:
+    - name: NODE_ENV
+      value: production

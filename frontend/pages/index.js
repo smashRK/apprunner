@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import axios from 'axios';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function Home() {
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
@@ -10,7 +12,7 @@ export default function Home() {
     setMessage('');
     
     try {
-      const response = await axios.post('http://localhost:8000/api/greet', { name });
+      const response = await axios.post(`${API_URL}/api/greet`, { name });
       setMessage(response.data.message);
     } catch (error) {
       console.error('Error:', error);

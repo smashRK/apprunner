@@ -3,17 +3,13 @@ runtime: python3
 build:
   commands:
     pre-build:
-      - cd backend
-      - pip install --upgrade pip
-      - pip install -r requirements.txt
+      - python -m pip install --upgrade pip
+      - pip install -r backend/requirements.txt
     build:
-      - cd ../frontend
-      - npm install
-      - npm run build
-    post-build:
-      - cd ..
+      - echo "Building frontend..."
+      - cd frontend && npm install && npm run build
 run:
-  command: cd backend && python -m uvicorn main:app --host 0.0.0.0 --port 8080
+  command: python -m uvicorn backend.main:app --host 0.0.0.0 --port 8080
   network:
     port: 8080
   env:

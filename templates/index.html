@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Greeting App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Greeting App</h1>
+        <div>
+            <input type="text" id="nameInput" placeholder="Enter your name">
+            <button onclick="getGreeting()">Get Greeting</button>
+        </div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function getGreeting() {
+            const name = document.getElementById('nameInput').value;
+            fetch(`/api/greet?name=${encodeURIComponent(name)}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('result').textContent = data.message;
+                })
+                .catch(error => {
+                    document.getElementById('result').textContent = 'An error occurred';
+                });
+        }
+    </script>
+</body>
+</html>

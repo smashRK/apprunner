@@ -9,7 +9,7 @@ build:
     post-build:
       - echo "Build completed"
 run:
-  runtime-version: 3.11
+  runtime-version: 3.8
   command: gunicorn --bind 0.0.0.0:8080 app:app --workers 4
   network:
     port: 8080

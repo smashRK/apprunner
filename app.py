@@ -1,8 +1,39 @@
 from flask import Flask, request, render_template, jsonify
 from models import db, User
 import os
+import psycopg2
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 app = Flask(__name__)
+
+def create_database():
+    # Connect to the default postgres database to create our database
+    conn = psycopg2.connect(
+        dbname='postgres',
+        user='postgres',
+        password='postgres',
+        host='localhost',
+        port='5432'
+    )
+    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    cursor = conn.cursor()
+    
+    try:
+        # Check if database exists
+        cursor.execute("SELECT 1 FROM pg_database WHERE datname = 'apprunner'")
+        exists = cursor.fetchone()
+        
+        if not exists:
+            cursor.execute('CREATE DATABASE apprunner')
+            print("Database 'apprunner' created successfully!")
+    except Exception as e:
+        print(f"Error creating database: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+# Create database if it doesn't exist
+create_database()
 
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/apprunner')

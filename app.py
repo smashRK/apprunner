@@ -6,14 +6,20 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 app = Flask(__name__)
 
-def create_database():
+def create_database(
+    db_name,
+    db_user,
+    db_password,
+    db_host,
+    db_port
+):
     # Connect to the default postgres database to create our database
     conn = psycopg2.connect(
-        dbname='postgres',
-        user='postgres',
-        password='postgres',
-        host='localhost',
-        port='5432'
+        dbname=db_name,
+        user=db_user,
+        password=db_password,
+        host=db_host,
+        port=db_port
     )
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cursor = conn.cursor()
@@ -32,11 +38,18 @@ def create_database():
         cursor.close()
         conn.close()
 
+DB_NAME = os.getenv('DB_NAME', 'apprunner')
+DB_USER = os.getenv('DB_USER', 'postgres')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_HOST = os.getenv('DB_HOST')
+DB_PORT = os.getenv('DB_PORT')
+DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
 # Create database if it doesn't exist
-create_database()
+create_database(DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT)
 
 # Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/apprunner')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(DATABASE_URL, 'postgresql://postgres:postgres@localhost:5432/apprunner')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize the database

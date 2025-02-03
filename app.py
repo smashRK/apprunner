@@ -154,6 +154,12 @@ def health_check():
 def home():
     return render_template('index.html')
 
+@app.route('/api/status')
+def status():
+    return jsonify({
+        'status': 'ok'
+    })
+
 @app.route('/api/greet', methods=['GET'])
 def greet():
     name = request.args.get('name')
@@ -168,6 +174,8 @@ def greet():
             db.session.rollback()
         return jsonify({"message": f"Hello, {name}!"})
     return jsonify({"message": "Please enter a name"}), 400
+
+
 
 @app.route('/api/name', methods=['POST'])
 def add_name():

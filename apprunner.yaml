@@ -13,9 +13,3 @@ run:
   command: gunicorn --bind 0.0.0.0:8080 app:app --workers 4 --timeout 120
   network:
     port: 8080
-  healthcheck:
-    command: curl -f http://localhost:8080/health || exit 1
-    interval: 30
-    timeout: 5
-    retries: 3
-    start_period: 60

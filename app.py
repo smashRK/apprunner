@@ -5,6 +5,7 @@ import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 import time
 import logging
+from sqlalchemy import text
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -15,11 +16,26 @@ app = Flask(__name__)
 def check_db_connection():
     """Check if database is accessible"""
     try:
+        # First check if we can connect directly with psycopg2
+        conn = psycopg2.connect(
+            dbname=os.getenv('DB_NAME', 'apprunner'),
+            user=os.getenv('DB_USER', 'postgres'),
+            password=os.getenv('DB_PASSWORD', 'postgres'),
+            host=os.getenv('DB_HOST', 'localhost'),
+            port=os.getenv('DB_PORT', '5432')
+        )
+        conn.close()
+        logger.info("Direct database connection successful")
+        
+        # Then check SQLAlchemy connection
         with app.app_context():
-            db.session.execute('SELECT 1')
+            # Use text() to create a SQL expression
+            result = db.session.execute(text('SELECT 1'))
+            result.scalar()  # Actually execute the query
+            logger.info("SQLAlchemy database connection successful")
             return True
     except Exception as e:
-        logger.error(f"Database health check failed: {e}")
+        logger.error(f"Database health check failed: {str(e)}")
         return False
 
 def wait_for_db(max_retries=5, delay_seconds=5):
@@ -89,7 +105,9 @@ except Exception as e:
     # Continue running the application
 
 # Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{os.getenv('DB_USER', 'postgres')}:{os.getenv('DB_PASSWORD', 'postgres')}@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '5432')}/{os.getenv('DB_NAME', 'apprunner')}"
+db_uri = f"postgresql://{os.getenv('DB_USER', 'postgres')}:{os.getenv('DB_PASSWORD', 'postgres')}@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '5432')}/{os.getenv('DB_NAME', 'apprunner')}"
+logger.info(f"Connecting to database with URI: {db_uri.replace(os.getenv('DB_PASSWORD', 'postgres'), '****')}")
+app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize the database
@@ -106,16 +124,25 @@ except Exception as e:
 @app.route('/health')
 def health_check():
     """Health check endpoint"""
-    health_status = {
-        'status': 'healthy',
-        'database': check_db_connection()
-    }
-    
-    if not health_status['database']:
-        health_status['status'] = 'degraded'
-        return jsonify(health_status), 503
-    
-    return jsonify(health_status)
+    try:
+        db_connected = check_db_connection()
+        health_status = {
+            'status': 'healthy' if db_connected else 'degraded',
+            'database': db_connected,
+            'database_url': f"postgresql://{os.getenv('DB_USER', 'postgres')}:****@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '5432')}/{os.getenv('DB_NAME', 'apprunner')}"
+        }
+        
+        if not db_connected:
+            return jsonify(health_status), 503
+        
+        return jsonify(health_status)
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e),
+            'database': False
+        }), 500
 
 @app.route('/')
 def home():

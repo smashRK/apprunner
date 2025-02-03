@@ -11,19 +11,34 @@ from sqlalchemy import text
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Database configuration
+DB_NAME = 'apprunner'
+DB_USER = 'postgres'
+DB_PASSWORD = '155MFOsWwh5F'
+DB_HOST = 'demo-database-instance-1.cl84q2gowr55.ap-south-1.rds.amazonaws.com'
+DB_PORT = '5432'
+SSL_MODE = 'require'
+
+# Common database parameters
+DB_PARAMS = {
+    'dbname': DB_NAME,
+    'user': DB_USER,
+    'password': DB_PASSWORD,
+    'host': DB_HOST,
+    'port': DB_PORT,
+    'sslmode': SSL_MODE
+}
+
+# SQLAlchemy URI
+DB_URI = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?sslmode={SSL_MODE}"
+
 app = Flask(__name__)
 
 def check_db_connection():
     """Check if database is accessible"""
     try:
         # First check if we can connect directly with psycopg2
-        conn = psycopg2.connect(
-            dbname='apprunner',
-            user='postgres',
-            password='155MFOsWwh5F',
-            host='demo-database-instance-1.cl84q2gowr55.ap-south-1.rds.amazonaws.com',
-            port='5432'
-        )
+        conn = psycopg2.connect(**DB_PARAMS)
         conn.close()
         logger.info("Direct database connection successful")
         
@@ -43,13 +58,10 @@ def wait_for_db(max_retries=5, delay_seconds=5):
     retries = 0
     while retries < max_retries:
         try:
-            conn = psycopg2.connect(
-                dbname='postgres',
-                user='postgres',
-                password='155MFOsWwh5F',
-                host='demo-database-instance-1.cl84q2gowr55.ap-south-1.rds.amazonaws.com',
-                port='5432'
-            )
+            # Use postgres database for initial connection
+            params = DB_PARAMS.copy()
+            params['dbname'] = 'postgres'
+            conn = psycopg2.connect(**params)
             conn.close()
             return True
         except psycopg2.OperationalError as e:
@@ -61,27 +73,22 @@ def wait_for_db(max_retries=5, delay_seconds=5):
 
 def create_database():
     """Create database if it doesn't exist"""
-    db_params = {
-        'dbname': 'postgres',
-        'user': 'postgres',
-        'password': '155MFOsWwh5F',
-        'host': 'demo-database-instance-1.cl84q2gowr55.ap-south-1.rds.amazonaws.com',
-        'port': '5432'
-    }
-    
     try:
-        conn = psycopg2.connect(**db_params)
+        # Use postgres database to create new database
+        params = DB_PARAMS.copy()
+        params['dbname'] = 'postgres'
+        conn = psycopg2.connect(**params)
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cursor = conn.cursor()
         
         # Check if database exists
         cursor.execute("SELECT 1 FROM pg_database WHERE datname = %s", 
-                      ('apprunner',))
+                      (DB_NAME,))
         exists = cursor.fetchone()
         
         if not exists:
-            cursor.execute('CREATE DATABASE ' + 'apprunner')
-            logger.info(f"Database 'apprunner' created successfully!")
+            cursor.execute(f'CREATE DATABASE {DB_NAME}')
+            logger.info(f"Database '{DB_NAME}' created successfully!")
     except Exception as e:
         logger.error(f"Error in database creation: {e}")
         raise
@@ -105,9 +112,8 @@ except Exception as e:
     # Continue running the application
 
 # Database configuration
-db_uri = f"postgresql://postgres:155MFOsWwh5F@demo-database-instance-1.cl84q2gowr55.ap-south-1.rds.amazonaws.com:5432/apprunner"
-logger.info(f"Connecting to database with URI: {db_uri.replace('155MFOsWwh5F', '****')}")
-app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
+logger.info(f"Connecting to database with URI: {DB_URI.replace(DB_PASSWORD, '****')}")
+app.config['SQLALCHEMY_DATABASE_URI'] = DB_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize the database
@@ -129,7 +135,7 @@ def health_check():
         health_status = {
             'status': 'healthy' if db_connected else 'degraded',
             'database': db_connected,
-            'database_url': f"postgresql://postgres:****@demo-database-instance-1.cl84q2gowr55.ap-south-1.rds.amazonaws.com:5432/apprunner"
+            'database_url': f"postgresql://{DB_USER}:****@{DB_HOST}:{DB_PORT}/{DB_NAME}"
         }
         
         if not db_connected:

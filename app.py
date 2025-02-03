@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 DB_NAME = 'apprunner'
 DB_USER = 'postgres'
 DB_PASSWORD = '155MFOsWwh5F'
-DB_HOST = 'demo-database-instance-1.cl84q2gowr55.ap-south-1.rds.amazonaws.com'
+DB_HOST = 'demo-database.cluster-cl84q2gowr55.ap-south-1.rds.amazonaws.com'
 DB_PORT = '5432'
 SSL_MODE = 'require'
 

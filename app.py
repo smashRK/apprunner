@@ -18,11 +18,11 @@ def check_db_connection():
     try:
         # First check if we can connect directly with psycopg2
         conn = psycopg2.connect(
-            dbname=os.getenv('DB_NAME', 'apprunner'),
-            user=os.getenv('DB_USER', 'postgres'),
-            password=os.getenv('DB_PASSWORD', 'postgres'),
-            host=os.getenv('DB_HOST', 'localhost'),
-            port=os.getenv('DB_PORT', '5432')
+            dbname='apprunner',
+            user='postgres',
+            password='155MFOsWwh5F',
+            host='demo-database-instance-1.cl84q2gowr55.ap-south-1.rds.amazonaws.com',
+            port='5432'
         )
         conn.close()
         logger.info("Direct database connection successful")
@@ -45,10 +45,10 @@ def wait_for_db(max_retries=5, delay_seconds=5):
         try:
             conn = psycopg2.connect(
                 dbname='postgres',
-                user=os.getenv('DB_USER', 'postgres'),
-                password=os.getenv('DB_PASSWORD', 'postgres'),
-                host=os.getenv('DB_HOST', 'localhost'),
-                port=os.getenv('DB_PORT', '5432')
+                user='postgres',
+                password='155MFOsWwh5F',
+                host='demo-database-instance-1.cl84q2gowr55.ap-south-1.rds.amazonaws.com',
+                port='5432'
             )
             conn.close()
             return True
@@ -63,10 +63,10 @@ def create_database():
     """Create database if it doesn't exist"""
     db_params = {
         'dbname': 'postgres',
-        'user': os.getenv('DB_USER', 'postgres'),
-        'password': os.getenv('DB_PASSWORD', 'postgres'),
-        'host': os.getenv('DB_HOST', 'localhost'),
-        'port': os.getenv('DB_PORT', '5432')
+        'user': 'postgres',
+        'password': '155MFOsWwh5F',
+        'host': 'demo-database-instance-1.cl84q2gowr55.ap-south-1.rds.amazonaws.com',
+        'port': '5432'
     }
     
     try:
@@ -76,12 +76,12 @@ def create_database():
         
         # Check if database exists
         cursor.execute("SELECT 1 FROM pg_database WHERE datname = %s", 
-                      (os.getenv('DB_NAME', 'apprunner'),))
+                      ('apprunner',))
         exists = cursor.fetchone()
         
         if not exists:
-            cursor.execute('CREATE DATABASE ' + os.getenv('DB_NAME', 'apprunner'))
-            logger.info(f"Database '{os.getenv('DB_NAME', 'apprunner')}' created successfully!")
+            cursor.execute('CREATE DATABASE ' + 'apprunner')
+            logger.info(f"Database 'apprunner' created successfully!")
     except Exception as e:
         logger.error(f"Error in database creation: {e}")
         raise
@@ -105,8 +105,8 @@ except Exception as e:
     # Continue running the application
 
 # Database configuration
-db_uri = f"postgresql://{os.getenv('DB_USER', 'postgres')}:{os.getenv('DB_PASSWORD', 'postgres')}@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '5432')}/{os.getenv('DB_NAME', 'apprunner')}"
-logger.info(f"Connecting to database with URI: {db_uri.replace(os.getenv('DB_PASSWORD', 'postgres'), '****')}")
+db_uri = f"postgresql://postgres:155MFOsWwh5F@demo-database-instance-1.cl84q2gowr55.ap-south-1.rds.amazonaws.com:5432/apprunner"
+logger.info(f"Connecting to database with URI: {db_uri.replace('155MFOsWwh5F', '****')}")
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -129,7 +129,7 @@ def health_check():
         health_status = {
             'status': 'healthy' if db_connected else 'degraded',
             'database': db_connected,
-            'database_url': f"postgresql://{os.getenv('DB_USER', 'postgres')}:****@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '5432')}/{os.getenv('DB_NAME', 'apprunner')}"
+            'database_url': f"postgresql://postgres:****@demo-database-instance-1.cl84q2gowr55.ap-south-1.rds.amazonaws.com:5432/apprunner"
         }
         
         if not db_connected:

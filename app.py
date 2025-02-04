@@ -15,9 +15,8 @@ logger = logging.getLogger(__name__)
 DB_NAME = 'apprunner'
 DB_USER = 'postgres'
 DB_PASSWORD = '155MFOsWwh5F'
-DB_HOST = 'demo-database.cluster-cl84q2gowr55.ap-south-1.rds.amazonaws.com'
+DB_HOST = 'pg-vpc.cl84q2gowr55.ap-south-1.rds.amazonaws.com'
 DB_PORT = '5432'
-SSL_MODE = 'require'
 
 # Common database parameters
 DB_PARAMS = {
@@ -26,11 +25,10 @@ DB_PARAMS = {
     'password': DB_PASSWORD,
     'host': DB_HOST,
     'port': DB_PORT,
-    'sslmode': SSL_MODE
 }
 
 # SQLAlchemy URI
-DB_URI = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?sslmode={SSL_MODE}"
+DB_URI = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 app = Flask(__name__)
 
